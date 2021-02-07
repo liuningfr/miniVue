@@ -5,6 +5,7 @@ class miniVue {
     this.$el = options.el;
 
     this.observer(this.$data);
+    this.name = 'liuning';
   }
 
   // Observer
@@ -42,6 +43,22 @@ class miniVue {
       set(newValue){
         this.$data[key] = newValue;
       }
-		});
+    });
+  }
+}
+
+class Dep {
+  constructor() {
+    this.deps = [];
+  }
+  
+  addDep(dep) {
+    this.deps.push(dep);
+  }
+  
+  notify(){
+    this.deps.forEach(dep => {
+      dep.update();
+    })
   }
 }
