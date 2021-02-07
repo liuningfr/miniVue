@@ -2,8 +2,8 @@
 <html>
   <body>
     <div id="app">
-      <div>姓名：{{ name }}</div>
-      <div>年龄：{{ age }}</div>
+      <div>姓名：{{name}}</div>
+      <div>年龄：{{age}}</div>
       <input type="text" v-model="name" placeholder="请输入姓名" />
       <input type="text" v-model="age" placeholder="请输入年龄" />
     </div>
@@ -15,6 +15,10 @@
       data: {
         name: '',
         age: '',
+      },
+      created() {
+        this.name = 'leo';
+        this.age = 28;
       }
     });
   </script>
