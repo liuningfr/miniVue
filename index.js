@@ -42,7 +42,7 @@ class miniVue {
 				  return;
 				}
 				value = newValue;
-				// 通知变化
+        // 通知变化
 				dep.notify();
 			}
 		});
@@ -80,7 +80,7 @@ class Dep {
 
 // 连接 observer 和 compiler
 class Watcher {
-	constructor(vm, key, initVal, cb){
+	constructor(vm, key, initVal, cb) {
 		this.vm = vm;
 		this.key = key;
 		this.cb = cb;
@@ -207,17 +207,17 @@ class miniCompiler {
 				}
 				break;
 			case 'model':
-				const updater = this.updateModel;
-				new Watcher(this.$vm, key, null, () => {
-					// updater(node, value);
+        const updater = this.updateModel;
+				new Watcher(this.$vm, key, key, (node, value) => {
+					updater(node, value);
 				});
 				break;
 		}
 	}
 
-	// updateModel(node, value) {
-	// 	node.value = value;
-	// }
+	updateModel(node, value) {
+		node.value = value;
+	}
 	
 	updateText(node, value, initVal){
 		const reg = /{{(.*)}}/ig;
