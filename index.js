@@ -1,76 +1,95 @@
 class miniVue {
-	constructor(options){
+	constructor(options) {
 		this.$options = options;
-		console.log("this.$options===" + JSON.stringify(this.$options) );
 		this.$data = options.data;
-		this.$el = options.el;
-		this.observer( this.$data );//添加observer监听
-		new miniCompile( options.el, this);//添加文档解析
-		if ( options.created ) {
+    this.$el = options.el;
+    // observer
+    this.observer(this.$data);
+    // compile
+    new miniCompile(options.el, this);
+    // lifecycle
+		if (options.created) {
 			options.created.call(this);
 		}
 	}
-	
-	observer( data ){//监听data数据，双向绑定
-		if( !data || typeof(data) !== 'object'){
+  
+  // 数据的双向绑定
+	observer(data) {
+		if(!data || typeof data !== 'object'){
 			return;
 		}
-		Object.keys(data).forEach(key => {//如果是对象进行解析
-			this.observerSet(key, data, data[key]);//监听data对象
-			this.proxyData(key);//本地代理服务
+		Object.keys(data).forEach(key => {
+      this.observerSet(key, data, data[key]);
+      // 把 data 挂载到 this 上
+			this.proxyData(key);
 		});
 	}
 	
-	observerSet( key, obj, value ){
-		this.observer(key);
-		const dep = new Dep();
-		Object.defineProperty( obj, key, {
-			get(){
+	observerSet(key, obj, value){
+    // 递归
+		this.observer(value);
+    const dep = new Dep();
+
+		Object.defineProperty(obj, key, {
+			get() {
 				Dep.target && dep.addDep(Dep.target);
 				return value;
 			},
-			set( newValue ){
+			set(newValue) {
 				if (newValue === value) {
 				  return;
 				}
 				value = newValue;
-				//通知变化
-				dep.notiyDep();
+				// 通知变化
+				dep.notify();
 			}
-		})
+		});
 	}
 	
-	proxyData(key){
-		Object.defineProperty( this, key, {
-			get(){
+	proxyData(key) {
+		Object.defineProperty(this, key, {
+			get() {
 				return this.$data[key];
 			},
-			set( newVal ){
+			set(newVal) {
 				this.$data[key] = newVal;
 			}
-		})
+		});
 	}
 	
 }
-
-//存储数据数组
-class Dep{
-	constructor(){
+class Dep {
+	constructor() {
 		this.deps = [];
 	}
 	
-	addDep(dep){
+	addDep(dep) {
 		this.deps.push(dep);
 	}
 	
-	notiyDep(){
+	notify() {
 		this.deps.forEach(dep => {
 			dep.update();
 		})
 	}
 }
 
-//个人编译器
+class Watcher {
+	constructor(vm, key, initVal, cb){
+		this.vm = vm;
+		this.key = key;
+		this.cb = cb;
+		this.initVal = initVal;
+		Dep.target = this;
+		this.vm[this.key];
+		Dep.target = null;
+	}
+	
+	update() {
+		this.cb.call(this.vm, this.vm[this.key], this.initVal);
+	}
+}
+
 class miniCompile{
 	constructor(el, vm){
 		this.$el = document.querySelector(el);
@@ -193,21 +212,4 @@ class miniCompile{
 		node.textContent = result;
 	}
 	
-}
-
-class Watcher{
-	
-	constructor( vm, key, initVal, cb ){
-		this.vm = vm;
-		this.key = key;
-		this.cb = cb;
-		this.initVal = initVal;
-		Dep.target = this;
-		this.vm[this.key];
-		Dep.target = null;
-	}
-	
-	update(){
-		this.cb.call( this.vm, this.vm[this.key], this.initVal );
-	}
 }
