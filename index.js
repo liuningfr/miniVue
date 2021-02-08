@@ -86,7 +86,8 @@ class Watcher {
 		this.cb = cb;
 		this.initVal = initVal;
 		Dep.target = this;
-		this.vm[this.key];
+    this.vm[this.key];
+    // 防止重复添加 dep
 		Dep.target = null;
 	}
 	
@@ -189,7 +190,7 @@ class miniCompiler {
 		}
 		const reg = /({{(.*)}})/;
 		const reg2 = /[^/{/}]+/;
-    const key = String(node.textContent.match(reg)).match(reg2);
+    const key = String(String(node.textContent.match(reg)).match(reg2));
 
     this.updaterAll('text', node, key);
 	}
@@ -197,33 +198,32 @@ class miniCompiler {
 	updaterAll(type, node, key) {
 		switch(type) {
 			case 'text':
-				if( key ){
+				if(key) {
 					const updater = this.updateText;
-					const initVal = node.textContent;//记录原文本第一次的数据
-					updater( node, this.$vm[key], initVal);
-					new Watcher( this.$vm, key, initVal, function( value, initVal ){
-						updater( node, value, initVal  );
+					const initVal = node.textContent;
+					// updater(node, this.$vm[key], initVal);
+					new Watcher(this.$vm, key, initVal, (value, initVal) => {
+						updater(node, value, initVal);
 					});
 				}
 				break;
 			case 'model':
 				const updater = this.updateModel;
-				new Watcher( this.$vm, key, null, function( value, initVal ){
-					updater( node, value );
+				new Watcher(this.$vm, key, null, () => {
+					// updater(node, value);
 				});
 				break;
 		}
 	}
 
-	updateModel( node, value ){
-		node.value = value;
-	}
+	// updateModel(node, value) {
+	// 	node.value = value;
+	// }
 	
-	updateText( node, value, initVal ){
+	updateText(node, value, initVal){
 		var reg = /{{(.*)}}/ig;
-		var replaceStr = String( initVal.match(reg) );
-		var result = initVal.replace(replaceStr, value );
+		var replaceStr = String(initVal.match(reg));
+		var result = initVal.replace(replaceStr, value);
 		node.textContent = result;
-	}
-	
+	}	
 }
