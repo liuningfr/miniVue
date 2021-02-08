@@ -5,15 +5,15 @@ class miniVue {
     this.$el = options.el;
     // observer
     this.observer(this.$data);
-    // compile
-    new miniCompile(options.el, this);
+    // compiler
+    new miniCompiler(options.el, this);
     // lifecycle
 		if (options.created) {
 			options.created.call(this);
 		}
 	}
   
-  // 数据的双向绑定
+  // observer 监听数据变化
 	observer(data) {
 		if(!data || typeof data !== 'object'){
 			return;
@@ -31,10 +31,12 @@ class miniVue {
     const dep = new Dep();
 
 		Object.defineProperty(obj, key, {
+      // get 中收集依赖
 			get() {
 				Dep.target && dep.addDep(Dep.target);
 				return value;
-			},
+      },
+      // set 中通知依赖更新
 			set(newValue) {
 				if (newValue === value) {
 				  return;
@@ -58,6 +60,8 @@ class miniVue {
 	}
 	
 }
+
+// 依赖收集器
 class Dep {
 	constructor() {
 		this.deps = [];
@@ -74,6 +78,7 @@ class Dep {
 	}
 }
 
+// 连接 observer 和 compiler
 class Watcher {
 	constructor(vm, key, initVal, cb){
 		this.vm = vm;
@@ -90,7 +95,7 @@ class Watcher {
 	}
 }
 
-class miniCompile{
+class miniCompiler{
 	constructor(el, vm){
 		this.$el = document.querySelector(el);
 		
