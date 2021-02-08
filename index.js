@@ -95,98 +95,107 @@ class Watcher {
 	}
 }
 
-class miniCompiler{
-	constructor(el, vm){
+class miniCompiler {
+	constructor(el, vm) {
 		this.$el = document.querySelector(el);
 		
 		this.$vm = vm;
 		if (this.$el) {
-			this.$fragment = this.getNodeChirdren( this.$el );
-			this.compile( this.$fragment);
+			this.$fragment = this.getNodeChirdren(this.$el);
+			this.compile(this.$fragment);
 			this.$el.appendChild(this.$fragment);
 		}
 	}
-	
-	getNodeChirdren(el){
+  
+  // 把 el 中的子节点拿出来
+	getNodeChirdren(el) {
 		const frag = document.createDocumentFragment();
 		
 		let child;
-		while( (child = el.firstChild )){
-			frag.appendChild( child );
+		while(child = el.firstChild) {
+			frag.appendChild(child);
 		}
 		return frag;
 	}
 	
-	compile( el ){
+	compile(el) {
 		const childNodes = el.childNodes;
-		Array.from(childNodes).forEach( node => {
-			if( node.nodeType == 1 ) {//1为元素节点
+		Array.from(childNodes).forEach(node => {
+			if( node.nodeType == 1 ) {
+        // 元素节点
 				const nodeAttrs = node.attributes;
 				Array.from(nodeAttrs).forEach( attr => {
-					const attrName = attr.name;//属性名称
-					const attrVal = attr.value;//属性值
-					if( attrName.slice(0,2) === 'v-' ){
+					const attrName = attr.name;
+          const attrVal = attr.value;
+
+					if (attrName.slice(0,2) === 'v-') {
 						var tagName = attrName.substring(2);
-						switch( tagName ){
+						switch(tagName) {
 							case "model":
-								this.zDir_model( node, attrVal );
-							break;
+								this.zDir_model(node, attrVal);
+							  break;
 							case "html":
-								this.zDir_html( node, attrVal );
-							break;
+								this.zDir_html(node, attrVal);
+                break;
+              default: 
+                break;
 						}
 					}
-					if( attrName.slice(0,1) === '@'  ){
+					if (attrName.slice(0,1) === '@') {
 						var tagName = attrName.substring(1);
-						this.zDir_click( node, attrVal );
+						this.zDir_click(node, attrVal);
 					}
 				})
-			} else if( node.nodeType == 2 ){//2为属性节点
-				console.log("nodeType=====22");
-			} else if( node.nodeType == 3 ){//3为文本节点
-				this.compileText( node );
+			} else if (node.nodeType == 2){
+        // 属性节点
+			} else if (node.nodeType == 3){
+        // 文本节点
+				this.compileText(node);
 			}
 			
 			// 递归子节点
 			if (node.childNodes && node.childNodes.length > 0) {
 				this.compile(node);
 			}
-		})
+		});
 	}
 	
-	zDir_click(node, attrVal){
-		var fn = this.$vm.$options.methods[attrVal];
-		node.addEventListener( 'click', fn.bind(this.$vm));
+	zDir_click(node, attrVal) {
+		const fn = this.$vm.$options.methods[attrVal];
+		node.addEventListener('click', fn.bind(this.$vm));
 	}
 	
-	zDir_model( node, value ){
-		const vm = this.$vm;
-		this.updaterAll( 'model', node, node.value );
-		node.addEventListener("input", e => {
+	zDir_model(node, value){
+    const vm = this.$vm;
+
+    this.updaterAll('model', node, node.value);
+
+		node.addEventListener('input', e => {
 		  vm[value] = e.target.value;
 		});
 	}
 	
-	zDir_html( node, value ){
-		this.updaterHtml( node, this.$vm[value] );
+	zDir_html(node, value) {
+		this.updaterHtml(node, this.$vm[value]);
 	}
 	
-	updaterHtml( node, value ){
+	updaterHtml(node, value) {
 		node.innerHTML = value;
 	}
 	
-	compileText( node ){
-		if( typeof( node.textContent ) !== 'string' ) {
-			return "";
+	compileText(node) {
+		if(typeof node.textContent !== 'string') {
+			return '';
 		}
 		const reg = /({{(.*)}})/;
 		const reg2 = /[^/{/}]+/;
-		const key = String((node.textContent).match(reg)).match(reg2);//获取监听的key
-		this.updaterAll( 'text', node, key );
+    const key = String(node.textContent.match(reg)).match(reg2);
+
+    this.updaterAll('text', node, key);
 	}
 	
-	updaterAll( type, node, key ) {
-		switch( type ){
+	updaterAll(type, node, key) {
+		switch(type) {
 			case 'text':
 				if( key ){
 					const updater = this.updateText;
