@@ -130,21 +130,20 @@ class miniCompiler {
           const attrVal = attr.value;
 
 					if (attrName.slice(0,2) === 'v-') {
-						var tagName = attrName.substring(2);
+						const tagName = attrName.substring(2);
 						switch(tagName) {
 							case "model":
-								this.zDir_model(node, attrVal);
+								this.handleModel(node, attrVal);
 							  break;
 							case "html":
-								this.zDir_html(node, attrVal);
+								this.handleHtml(node, attrVal);
                 break;
               default: 
                 break;
 						}
 					}
 					if (attrName.slice(0,1) === '@') {
-						var tagName = attrName.substring(1);
-						this.zDir_click(node, attrVal);
+						this.handleClick(node, attrVal);
 					}
 				})
 			} else if (node.nodeType == 2){
@@ -161,12 +160,12 @@ class miniCompiler {
 		});
 	}
 	
-	zDir_click(node, attrVal) {
+	handleClick(node, attrVal) {
 		const fn = this.$vm.$options.methods[attrVal];
 		node.addEventListener('click', fn.bind(this.$vm));
 	}
 	
-	zDir_model(node, value){
+	handleModel(node, value){
     const vm = this.$vm;
 
     this.updaterAll('model', node, node.value);
@@ -176,7 +175,7 @@ class miniCompiler {
 		});
 	}
 	
-	zDir_html(node, value) {
+	handleHtml(node, value) {
 		this.updaterHtml(node, this.$vm[value]);
 	}
 	
@@ -188,9 +187,9 @@ class miniCompiler {
 		if(typeof node.textContent !== 'string') {
 			return '';
 		}
-		const reg = /({{(.*)}})/;
+		const reg1 = /({{(.*)}})/;
 		const reg2 = /[^/{/}]+/;
-    const key = String(String(node.textContent.match(reg)).match(reg2));
+    const key = String(String(node.textContent.match(reg1)).match(reg2));
 
     this.updaterAll('text', node, key);
 	}
@@ -221,9 +220,9 @@ class miniCompiler {
 	// }
 	
 	updateText(node, value, initVal){
-		var reg = /{{(.*)}}/ig;
-		var replaceStr = String(initVal.match(reg));
-		var result = initVal.replace(replaceStr, value);
+		const reg = /{{(.*)}}/ig;
+		const replaceStr = String(initVal.match(reg));
+		const result = initVal.replace(replaceStr, value);
 		node.textContent = result;
 	}	
 }
